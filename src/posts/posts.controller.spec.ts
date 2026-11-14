@@ -2,8 +2,27 @@ import type { PostsService } from './posts.service.js';
 import { PostsController } from './posts.controller.js';
 
 describe('PostsController', () => {
+  it('finds a post by id via the service', () => {
+    const post = { id: 'p1', authorId: 'a1', title: 'Title', content: 'Body' };
+    const service = {
+      findOne: vi.fn().mockReturnValue(post),
+    } as unknown as PostsService;
+
+    expect(new PostsController(service).findOne('p1')).toBe(post);
+    expect(service.findOne).toHaveBeenCalledExactlyOnceWith('p1');
+  });
+
+  it('removes a post via the service', () => {
+    const service = { remove: vi.fn() } as unknown as PostsService;
+
+    expect(new PostsController(service).remove('p1')).toBeUndefined();
+    expect(service.remove).toHaveBeenCalledExactlyOnceWith('p1');
+  });
+
   it('lists posts via the service', () => {
-    const service = { findAll: vi.fn().mockReturnValue([]) } as unknown as PostsService;
+    const service = {
+      findAll: vi.fn().mockReturnValue([]),
+    } as unknown as PostsService;
 
     expect(new PostsController(service).findAll()).toEqual([]);
     expect(service.findAll).toHaveBeenCalled();
@@ -11,9 +30,15 @@ describe('PostsController', () => {
 
   it('creates a post via the service', () => {
     const post = { id: '1', authorId: 'a1', title: 'T', content: 'C' };
-    const service = { create: vi.fn().mockReturnValue(post) } as unknown as PostsService;
+    const service = {
+      create: vi.fn().mockReturnValue(post),
+    } as unknown as PostsService;
 
-    const result = new PostsController(service).create({ authorId: 'a1', title: 'T', content: 'C' });
+    const result = new PostsController(service).create({
+      authorId: 'a1',
+      title: 'T',
+      content: 'C',
+    });
 
     expect(result).toBe(post);
     expect(service.create).toHaveBeenCalledWith('a1', 'T', 'C');
@@ -21,9 +46,14 @@ describe('PostsController', () => {
 
   it('updates a post via the service', () => {
     const post = { id: '1', authorId: 'a1', title: 'New', content: 'Body' };
-    const service = { update: vi.fn().mockReturnValue(post) } as unknown as PostsService;
+    const service = {
+      update: vi.fn().mockReturnValue(post),
+    } as unknown as PostsService;
 
-    const result = new PostsController(service).update('1', { title: 'New', content: 'Body' });
+    const result = new PostsController(service).update('1', {
+      title: 'New',
+      content: 'Body',
+    });
 
     expect(result).toBe(post);
     expect(service.update).toHaveBeenCalledWith('1', 'New', 'Body');
