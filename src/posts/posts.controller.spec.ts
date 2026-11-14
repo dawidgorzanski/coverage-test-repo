@@ -1,3 +1,4 @@
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import type { PostsService } from './posts.service.js';
 import { PostsController } from './posts.controller.js';
 
@@ -27,5 +28,44 @@ describe('PostsController', () => {
 
     expect(result).toBe(post);
     expect(service.update).toHaveBeenCalledWith('1', 'New', 'Body');
+  });
+
+  it('finds a post by id via the service', () => {
+    const post = { id: '1', authorId: 'a1', title: 'T', content: 'C' };
+    const service = { findOne: vi.fn().mockReturnValue(post) } as unknown as PostsService;
+
+    expect(new PostsController(service).findOne('1')).toBe(post);
+    expect(service.findOne).toHaveBeenCalledExactlyOnceWith('1');
+  });
+
+  it('propagates the service error when a post is not found', () => {
+    const error = new NotFoundException('Post not found');
+    const service = {
+      findOne: vi.fn().mockImplementation(() => {
+        throw error;
+      }),
+    } as unknown as PostsService;
+
+    expect(() => new PostsController(service).findOne('missing')).toThrow(error);
+    expect(service.findOne).toHaveBeenCalledExactlyOnceWith('missing');
+  });
+
+  it('removes a post via the service and returns no body', () => {
+    const service = { remove: vi.fn() } as unknown as PostsService;
+
+    expect(new PostsController(service).remove('1')).toBeUndefined();
+    expect(service.remove).toHaveBeenCalledExactlyOnceWith('1');
+  });
+
+  it('propagates the service error when a post cannot be removed', () => {
+    const error = new ConflictException('Post has comments');
+    const service = {
+      remove: vi.fn().mockImplementation(() => {
+        throw error;
+      }),
+    } as unknown as PostsService;
+
+    expect(() => new PostsController(service).remove('1')).toThrow(error);
+    expect(service.remove).toHaveBeenCalledExactlyOnceWith('1');
   });
 });
