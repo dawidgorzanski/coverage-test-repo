@@ -28,4 +28,19 @@ describe('PostsController', () => {
     expect(result).toBe(post);
     expect(service.update).toHaveBeenCalledWith('1', 'New', 'Body');
   });
+
+  it('finds a post by id via the service', () => {
+    const post = { id: '1', authorId: 'a1', title: 'T', content: 'C' };
+    const service = { findOne: vi.fn().mockReturnValue(post) } as unknown as PostsService;
+
+    expect(new PostsController(service).findOne('1')).toBe(post);
+    expect(service.findOne).toHaveBeenCalledExactlyOnceWith('1');
+  });
+
+  it('removes a post via the service', () => {
+    const service = { remove: vi.fn() } as unknown as PostsService;
+
+    expect(new PostsController(service).remove('1')).toBeUndefined();
+    expect(service.remove).toHaveBeenCalledExactlyOnceWith('1');
+  });
 });
